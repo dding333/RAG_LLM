@@ -1,0 +1,16 @@
+vllm
+modelscope
+tiktoken
+pdfplumber
+PdfReader
+PyPDF2
+langchain
+jieba
+rank_bm25
+sentence-transformers
+faiss-gpu
+
+
+
+
+
