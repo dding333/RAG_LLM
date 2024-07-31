@@ -10,13 +10,12 @@ from langchain.embeddings.huggingface import HuggingFaceEmbeddings
 from pdf_parse import DataProcess
 import torch
 
-
 class FaissRetriever(object):
-    # 初始化文档块索引，然后插入faiss库
+    # Initialize document block index and then insert into Faiss library
     def __init__(self, model_path, data):
-        self.embeddings  = HuggingFaceEmbeddings(
-                               model_name = model_path,
-                               model_kwargs = {"device":"cuda"}
+        self.embeddings = HuggingFaceEmbeddings(
+                               model_name=model_path,
+                               model_kwargs={"device": "cuda"}
                                # model_kwargs = {"device":"cuda:1"}
                            )
         docs = []
@@ -28,14 +27,15 @@ class FaissRetriever(object):
         del self.embeddings
         torch.cuda.empty_cache()
 
-    # 获取top-K分数最高的文档块
+    # Get the top-K highest scoring document blocks
     def GetTopK(self, query, k):
        context = self.vector_store.similarity_search_with_score(query, k=k)
        return context
 
-    # 返回faiss向量检索对象
+    # Return the Faiss vector retrieval object
     def GetvectorStore(self):
         return self.vector_store
+
 
 if __name__ == "__main__":
     base = "."
@@ -53,11 +53,12 @@ if __name__ == "__main__":
     data = dp.data
 
     faissretriever = FaissRetriever(model_name, data)
-    faiss_ans = faissretriever.GetTopK("如何预防新冠肺炎", 6)
+    faiss_ans = faissretriever.GetTopK("How to prevent COVID-19", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("交通事故如何处理", 6)
+    faiss_ans = faissretriever.GetTopK("How to handle traffic accidents", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("吉利集团的董事长是谁", 6)
+    faiss_ans = faissretriever.GetTopK("Who is the chairman of Geely Group", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("吉利汽车语音组手叫什么", 6)
+    faiss_ans = faissretriever.GetTopK("What is the name of the voice group of Geely Auto", 6)
     print(faiss_ans)
+
