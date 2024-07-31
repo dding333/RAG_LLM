@@ -22,7 +22,7 @@ from faiss_retriever import FaissRetriever
 from bm25_retriever import BM25
 from pdf_parse import DataProcess
 
-# 获取Langchain的工具链 
+# get langchain
 def get_qa_chain(llm, vector_store, prompt_template):
 
     prompt = PromptTemplate(template=prompt_template,
@@ -30,7 +30,7 @@ def get_qa_chain(llm, vector_store, prompt_template):
 
     return RetrievalQA.from_llm(llm=llm, retriever=vector_store.as_retriever(search_kwargs={"k": 10}), prompt=prompt)
 
-# 构造提示，根据merged faiss和bm25的召回结果返回答案
+# get prompt，use merged faiss and bm25 retriver to get answer
 def get_emb_bm25_merge(faiss_context, bm25_context, query):
     max_length = 2500
     emb_ans = ""
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     m3e =  base + "/pre_train_model/m3e-large"
     bge_reranker_large = base + "/pre_train_model/bge-reranker-large"
 
-    # 解析pdf文档，构造数据
+    # parse pdf
     dp =  DataProcess(pdf_path = base + "/data/train_a.pdf")
     dp.ParseBlock(max_seq = 1024)
     dp.ParseBlock(max_seq = 512)
@@ -119,24 +119,24 @@ if __name__ == "__main__":
     data = dp.data
     print("data load ok")
 
-    # Faiss召回
+    # Faiss retriever
     faissretriever = FaissRetriever(m3e, data)
     vector_store = faissretriever.vector_store
     print("faissretriever load ok")
 
-    # BM25召回
+    # BM25 retriver
     bm25 = BM25(data)
     print("bm25 load ok")
 
-    # LLM大模型
+    # LLM 
     llm = ChatLLM(qwen7)
     print("llm qwen load ok")
 
-    # reRank模型
+    # reRank
     rerank = reRankLLM(bge_reranker_large)
     print("rerank model load ok")
 
-    # 对每一条测试问题，做答案生成处理
+    # get answer 
     with open(base + "/data/test_question.json", "r") as f:
         jdata = json.loads(f.read())
         print(len(jdata))
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         for idx, line in enumerate(jdata):
             query = line["question"]
 
-            # faiss召回topk
+            # faiss topk
             faiss_context = faissretriever.GetTopK(query, 15)
             faiss_min_score = 0.0
             if(len(faiss_context) > 0):
@@ -153,15 +153,15 @@ if __name__ == "__main__":
             emb_ans = ""
             for doc, score in faiss_context:
                 cnt =cnt + 1
-                # 最长选择max length
+                # max length
                 if(len(emb_ans + doc.page_content) > max_length):
                     break
                 emb_ans = emb_ans + doc.page_content
-                # 最多选择6个
+                # six as max
                 if(cnt>6):
                     break
 
-            # bm2.5召回topk
+            # bm2.5 topk
             bm25_context = bm25.GetBM25TopK(query, 15)
             bm25_ans = ""
             cnt = 0
@@ -173,41 +173,42 @@ if __name__ == "__main__":
                 if(cnt > 6):
                     break
 
-            # 构造合并bm25召回和向量召回的prompt
+            # Construct a prompt for merging BM25 recall and vector recall
             emb_bm25_merge_inputs = get_emb_bm25_merge(faiss_context, bm25_context, query)
-
-            # 构造bm25召回的prompt
+            
+            # Construct a prompt for BM25 recall
             bm25_inputs = get_rerank(bm25_ans, query)
-
-            # 构造向量召回的prompt
+            
+            # Construct a prompt for vector recall
             emb_inputs = get_rerank(emb_ans, query)
-
-            # rerank召回的候选，并按照相关性得分排序
+            
+            # Rerank the recall candidates and sort them by relevance score
             rerank_ans = reRank(rerank, 6, query, bm25_context, faiss_context)
-            # 构造得到rerank后生成答案的prompt
+            # Construct a prompt for generating the answer after reranking
             rerank_inputs = get_rerank(rerank_ans, query)
-
+            
             batch_input = []
             batch_input.append(emb_bm25_merge_inputs)
             batch_input.append(bm25_inputs)
             batch_input.append(emb_inputs)
             batch_input.append(rerank_inputs)
-            # 执行batch推理
+            # Execute batch inference
             batch_output = llm.infer(batch_input)
-            line["answer_1"] = batch_output[0] # 合并两路召回的结果
-            line["answer_2"] = batch_output[1] # bm召回的结果
-            line["answer_3"] = batch_output[2] # 向量召回的结果
-            line["answer_4"] = batch_output[3] # 多路召回重排序后的结果
+            line["answer_1"] = batch_output[0] # Result of merging the two recalls
+            line["answer_2"] = batch_output[1] # Result of BM recall
+            line["answer_3"] = batch_output[2] # Result of vector recall
+            line["answer_4"] = batch_output[3] # Result after reranking multiple recalls
             line["answer_5"] = emb_ans
             line["answer_6"] = bm25_ans
             line["answer_7"] = rerank_ans
-            # 如果faiss检索跟query的距离高于500，输出无答案
+            # If the distance between the Faiss retrieval and the query is greater than 500, output no answer
+
             if(faiss_min_score >500):
                 line["answer_5"] = "无答案"
             else:
                 line["answer_5"] = str(faiss_min_score)
 
-        # 保存结果，生成submission文件
+        # save the results
         json.dump(jdata, open(base + "/data/result.json", "w", encoding='utf-8'), ensure_ascii=False, indent=2)
         end = time.time()
         print("cost time: " + str(int(end-start)/60))
