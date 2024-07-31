@@ -53,12 +53,12 @@ if __name__ == "__main__":
     data = dp.data
 
     faissretriever = FaissRetriever(model_name, data)
-    faiss_ans = faissretriever.GetTopK("How to prevent COVID-19", 6)
+    faiss_ans = faissretriever.GetTopK("如何预防covid", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("How to handle traffic accidents", 6)
+    faiss_ans = faissretriever.GetTopK("如何处理交通事故", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("Who is the chairman of Geely Group", 6)
+    faiss_ans = faissretriever.GetTopK("谁是吉利汽车董事长", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("What is the name of the voice group of Geely Auto", 6)
+    faiss_ans = faissretriever.GetTopK("吉利汽车是否有只能语音", 6)
     print(faiss_ans)
 
