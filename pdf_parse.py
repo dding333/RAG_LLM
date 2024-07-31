@@ -11,7 +11,9 @@ class DataProcess(object):
         self.pdf_path = pdf_path
         self.data = []
 
-    # 滑动窗口功能实现，其中fast代表当前遍历句子的index，slow代表每次窗口开始滑动的起点。默认窗口直接滑动的overlap是1个句子。
+# Implementation of sliding window function, where 'fast' represents the index of the current sentence being traversed,
+# and 'slow' represents the starting point of the sliding window each time it moves. The default overlap of the sliding window is 1 sentence.
+
     def SlidingWindow(self, sentences, kernel = 512, stride = 1):
         sz = len(sentences)
         cur = ""
@@ -26,8 +28,6 @@ class DataProcess(object):
             cur = cur + sentence + "。"
             fast = fast + 1
 
-    #  数据过滤，
-    #
     def Datafilter(self, line, header, pageid, max_seq = 1024):
 
          sz = len(line)
@@ -57,7 +57,7 @@ class DataProcess(object):
              if(line not in self.data):
                  self.data.append(line)
 
-    # 提取页头即一级标题
+    # get the header
     def GetHeader(self, page):
         try:
             lines = page.extract_words()[::]
@@ -72,7 +72,8 @@ class DataProcess(object):
             return lines[0]["text"]
         return None
 
-    # 按照每页中块提取内容,并和一级标题进行组合,配合Document 可进行意图识别
+# Extract content by block from each page and combine it with the primary title. This, along with the Document class, can be used for intent recognition.
+
     def ParseBlock(self, max_seq = 1024):
 
         with pdfplumber.open(self.pdf_path) as pdf:
@@ -118,7 +119,8 @@ class DataProcess(object):
                 if(len(squence) > 0):
                     self.Datafilter(squence, header, i, max_seq = max_seq)
 
-    # 按句号划分文档，然后利用最大长度划分文档块
+# Divide the document by periods, then split the document into blocks based on the maximum length.
+
     def ParseOnePageWithRule(self, max_seq = 512, min_len = 6):
         for idx, page in enumerate(PdfReader(self.pdf_path).pages):
             page_content = ""
@@ -147,10 +149,11 @@ class DataProcess(object):
                         cur = sentence
                     else:
                         cur = cur + sentence
-    #  滑窗法提取段落
-    #  1. 把pdf看做一个整体,作为一个字符串
-    #  2. 利用句号当做分隔符,切分成一个数组
-    #  3. 利用滑窗法对数组进行滑动, 此处的
+# Sliding window method to extract paragraphs
+# 1. Treat the PDF as a whole, as a single string
+# 2. Use periods as separators to split it into an array
+# 3. Use the sliding window method to slide through the array
+
     def ParseAllPage(self, max_seq = 512, min_len = 6):
         all_content = ""
         for idx, page in enumerate(PdfReader(self.pdf_path).pages):
