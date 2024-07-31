@@ -9,14 +9,14 @@ import jieba
 
 class BM25(object):
 
-    # 遍历文档，首先做分词，然后把分词后的文档和全文文档建立索引和映射关系 
+    # Traverse documents, perform word segmentation first, then establish an index and mapping relationship between the segmented documents and the full documents
     def __init__(self, documents):
 
         docs = []
         full_docs = []
         for idx, line in enumerate(documents):
             line = line.strip("\n").strip()
-            if(len(line)<5):
+            if len(line) < 5:
                 continue
             tokens = " ".join(jieba.cut_for_search(line))
             # docs.append(Document(page_content=tokens, metadata={"id": idx, "cate":words[1],"pageid":words[2]}))
@@ -28,11 +28,11 @@ class BM25(object):
         self.full_documents = full_docs
         self.retriever = self._init_bm25()
 
-    # 初始化BM25的知识库
+    # Initialize BM25 knowledge base
     def _init_bm25(self):
         return BM25Retriever.from_documents(self.documents)
 
-    # 获得得分在topk的文档和分数
+    # Get the top k documents and scores
     def GetBM25TopK(self, query, topk):
         self.retriever.k = topk
         query = " ".join(jieba.cut_for_search(query))
@@ -41,6 +41,7 @@ class BM25(object):
         for line in ans_docs:
             ans.append(self.full_documents[line.metadata["id"]])
         return ans
+
 
 if __name__ == "__main__":
 
