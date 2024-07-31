@@ -19,7 +19,7 @@ CUDA_DEVICE = f"{DEVICE}:{DEVICE_ID}" if DEVICE_ID else DEVICE
 IMEND = "<|im_end|>"
 ENDOFTEXT = "<|endoftext|>"
 
-# 获取stop token的id
+# get stop token id
 def get_stop_words_ids(chat_format, tokenizer):
     if chat_format == "raw":
         stop_words_ids = [tokenizer.encode("Human:"), [tokenizer.eod_id]]
@@ -29,7 +29,7 @@ def get_stop_words_ids(chat_format, tokenizer):
         raise NotImplementedError(f"Unknown chat format {chat_format!r}")
     return stop_words_ids
 
-# 释放gpu显存
+# release gpu
 def torch_gc():
     if torch.cuda.is_available():
         with torch.cuda.device(CUDA_DEVICE):
@@ -50,7 +50,7 @@ class ChatLLM(object):
        self.tokenizer.eos_token_id = self.generation_config.eos_token_id
        self.stop_words_ids = []
 
-       # 加载vLLM大模型
+       # load llm
        self.model = LLM(model=model_path,
                             tokenizer=model_path,
                             tensor_parallel_size=1,
@@ -61,7 +61,7 @@ class ChatLLM(object):
             self.stop_words_ids.extend(stop_id)
        self.stop_words_ids.extend([self.generation_config.eos_token_id])
 
-       # LLM的采样参数
+       # LLM parameters
        sampling_kwargs = {
             "stop_token_ids": self.stop_words_ids,
             "early_stopping": False,
@@ -76,7 +76,7 @@ class ChatLLM(object):
        }
        self.sampling_params = SamplingParams(**sampling_kwargs)
 
-    # 批量推理，输入一个batch，返回一个batch的答案
+    # batch generation 
     def infer(self, prompts):
        batch_text = []
        for q in prompts:
