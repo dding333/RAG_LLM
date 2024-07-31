@@ -59,6 +59,6 @@ if __name__ == "__main__":
     print(faiss_ans)
     faiss_ans = faissretriever.GetTopK("谁是吉利汽车董事长", 6)
     print(faiss_ans)
-    faiss_ans = faissretriever.GetTopK("吉利汽车是否有只能语音", 6)
+    faiss_ans = faissretriever.GetTopK("吉利汽车是否有智能语音", 6)
     print(faiss_ans)
 
