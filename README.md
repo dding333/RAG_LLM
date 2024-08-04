@@ -52,47 +52,11 @@ Train data：
 
 ![](images/image_fChhMjnifo.png)
 
-Test data：
-
 ![](images/image_RiYKWHwtQa.png)
 
 ### 3、Methods
 
 #### 3.1 PDF parser
-
-##### 3.1.1 PDF block parsing
-
-![](images/image_ZzQCQ4yF1G.png)
-
-As shown in the figure, we hope the PDF parsing can be done in blocks as much as possible, treating each block as a sample. This way, we can ensure the integrity of the text content in the PDF as much as possible.
-
-##### 3.1.2 PDF sliding window parsing
-
-![](images/image_aAuUHtdAPJ.png)
-
-![](images/image_WKkhvnKG15.png)
-
-As shown in Figures 1 and 2, we can see that the context of Figure 1 and Figure 2 is continuous. To ensure the continuity of the text content across pages, we propose the sliding window method.
-
-Specifically, we treat all the content in the PDF as a string, split it by periods, and then apply the sliding window on the resulting array. The details are as follows:
-
-["aa", "bb", "cc", "dd"]
-
-If the string length is 4, the result after applying the sliding window will be:
-
-aabb
-
-bbcc
-
-ccdd
-
-We hope that the sliding window method, like convolution, can use different kernels and strides to find the optimal sample recall coverage.
-
-In simple terms, the sliding window has overlaps, ensuring that the document blocks are as complete as possible, avoiding cutting or skipping important answer steps.
-
-
-
-**3.1.3 PDF parsers used in this project**
 
 
 - **PDF Block Parsing**: This method aims to ensure that a subheading and its corresponding content are within one document block. The lengths of the document blocks are 512 and 1024, respectively.
@@ -102,7 +66,6 @@ In simple terms, the sliding window has overlaps, ensuring that the document blo
 
 #### 3.2 Retrieval 
 
-召回主要使用langchain中的retrievers进行文本的召回。我们知道向量召回和bm25召回具有互补性，前者是深度语义召回，侧重泛化性，后者是字面召回，侧重关键词/实体的字面相关性，这两个召回算法也是工业界用的比较多的，比较有代表性，因此选用了这两个进行召回。
 
 
 
